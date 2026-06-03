@@ -85,13 +85,35 @@ export default function LoginView({ onLogin, showToast }: LoginViewProps) {
     }
 
     // Default hardcoded roles bypass fallback
+    let defaultProfile;
+    let defaultRole: UserRole = 'student';
+
     if (identifier.startsWith('ADMIN') || identifier.includes('admin') || identifier === '850') {
-      onLogin('admin');
+      defaultRole = 'admin';
+      defaultProfile = {
+        id: identifier,
+        name: '陈教授',
+        department: '学术教务中心',
+        avatar: ''
+      };
     } else if (identifier.startsWith('ACAD') || identifier.includes('teacher') || identifier === 'Sterling') {
-      onLogin('teacher');
+      defaultRole = 'teacher';
+      defaultProfile = {
+        id: identifier,
+        name: 'Dr. Julian Sterling',
+        department: '计算机科学学院',
+        avatar: ''
+      };
     } else {
-      onLogin('student');
+      defaultProfile = {
+        id: identifier,
+        name: '陈伟',
+        department: '计算机科学学院',
+        avatar: ''
+      };
     }
+
+    onLogin(defaultRole, defaultProfile);
 
     if (showToast) {
       showToast('success', '校内默认登录', `您已通过快捷仿真通道以「${identifier}」身份进入工作站。`);
