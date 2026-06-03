@@ -92,7 +92,7 @@ async function seed() {
   // 2. Insert topics
   for (const topic of NEW_TOPICS) {
     const { data: existing } = await supabase
-      .from('thesis_topics')
+      .from('topics')
       .select('id')
       .eq('title', topic.title)
       .single();
@@ -100,7 +100,7 @@ async function seed() {
     if (existing) {
       console.log(`⏭️  选题「${topic.title}」已存在，跳过`);
     } else {
-      const { error } = await supabase.from('thesis_topics').insert(topic);
+      const { error } = await supabase.from('topics').insert(topic);
       if (error) {
         console.error(`❌ 插入选题「${topic.title}」失败:`, error.message);
       } else {
