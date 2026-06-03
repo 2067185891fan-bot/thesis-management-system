@@ -1,0 +1,19 @@
+{
+  "build_command": "npm run build",
+  "start_command": "npm start",
+  "output_dir": "dist",
+  "env": {
+    "SUPABASE_URL": {
+      "description": "Supabase 项目 URL",
+      "required": true
+    },
+    "SUPABASE_ANON_KEY": {
+      "description": "Supabase 匿名密钥",
+      "required": true
+    },
+    "GEMINI_API_KEY": {
+      "description": "Google Gemini API 密钥",
+      "required": false
+    }
+  }
+}
