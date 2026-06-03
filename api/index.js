@@ -247,7 +247,7 @@ app.get('/api/audits', async (req, res) => {
   try {
     const { advisor } = req.query;
 
-    let query = supabase.from('audits').select('*');
+    let query = supabase.from('selection_audits').select('*');
 
     if (advisor) {
       // We need to filter by topic's advisor_name
@@ -281,7 +281,7 @@ app.post('/api/audits', async (req, res) => {
     const { studentId, studentName, topicTitle } = req.body;
 
     const { data: newAudit, error } = await supabase
-      .from('audits')
+      .from('selection_audits')
       .insert({
         student_id: studentId,
         student_name: studentName,
@@ -306,7 +306,7 @@ app.put('/api/audits/:id', async (req, res) => {
     const { status } = req.body;
 
     const { data: updatedAudit, error } = await supabase
-      .from('audits')
+      .from('selection_audits')
       .update({ status })
       .eq('id', id)
       .select()
@@ -326,7 +326,7 @@ app.get('/api/taskbooks', async (req, res) => {
   try {
     const { advisor } = req.query;
 
-    let query = supabase.from('taskbooks').select('*');
+    let query = supabase.from('task_books').select('*');
 
     if (advisor) {
       // Filter by topic's advisor
@@ -359,7 +359,7 @@ app.post('/api/taskbooks', async (req, res) => {
     const { studentName, topicTitle } = req.body;
 
     const { data: newTaskBook, error } = await supabase
-      .from('taskbooks')
+      .from('task_books')
       .insert({
         student_name: studentName,
         topic_title: topicTitle,
@@ -383,7 +383,7 @@ app.put('/api/taskbooks/:id', async (req, res) => {
     const { status } = req.body;
 
     const { data: updatedTaskBook, error } = await supabase
-      .from('taskbooks')
+      .from('task_books')
       .update({ status })
       .eq('id', id)
       .select()
@@ -490,7 +490,7 @@ app.get('/api/midterm/:studentId', async (req, res) => {
     const { studentId } = req.params;
 
     const { data: midterm, error } = await supabase
-      .from('midterms')
+      .from('midterm_reports')
       .select('*')
       .eq('student_id', studentId)
       .single();
@@ -521,7 +521,7 @@ app.post('/api/midterm', async (req, res) => {
 
     // Check if exists
     const { data: existing } = await supabase
-      .from('midterms')
+      .from('midterm_reports')
       .select('id')
       .eq('student_id', studentId)
       .single();
@@ -530,7 +530,7 @@ app.post('/api/midterm', async (req, res) => {
 
     if (existing) {
       const { data, error } = await supabase
-        .from('midterms')
+        .from('midterm_reports')
         .update({
           current_progress: currentProgress,
           explanation,
@@ -547,7 +547,7 @@ app.post('/api/midterm', async (req, res) => {
       result = data;
     } else {
       const { data, error } = await supabase
-        .from('midterms')
+        .from('midterm_reports')
         .insert({
           student_id: studentId,
           current_progress: currentProgress,
@@ -578,7 +578,7 @@ app.post('/api/midterm/:studentId/comments', async (req, res) => {
 
     // Get existing midterm
     const { data: midterm } = await supabase
-      .from('midterms')
+      .from('midterm_reports')
       .select('comments')
       .eq('student_id', studentId)
       .single();
@@ -596,7 +596,7 @@ app.post('/api/midterm/:studentId/comments', async (req, res) => {
 
     // Update
     const { data, error } = await supabase
-      .from('midterms')
+      .from('midterm_reports')
       .update({ comments: updatedComments })
       .eq('student_id', studentId)
       .select()
@@ -617,7 +617,7 @@ app.get('/api/final/:studentId', async (req, res) => {
     const { studentId } = req.params;
 
     const { data: finalSubmission, error } = await supabase
-      .from('finals')
+      .from('final_submissions')
       .select('*')
       .eq('student_id', studentId)
       .single();
@@ -653,7 +653,7 @@ app.post('/api/final', async (req, res) => {
 
     // Check if exists
     const { data: existing } = await supabase
-      .from('finals')
+      .from('final_submissions')
       .select('id')
       .eq('student_id', studentId)
       .single();
@@ -662,7 +662,7 @@ app.post('/api/final', async (req, res) => {
 
     if (existing) {
       const { data, error } = await supabase
-        .from('finals')
+        .from('final_submissions')
         .update(updates)
         .eq('student_id', studentId)
         .select()
@@ -672,7 +672,7 @@ app.post('/api/final', async (req, res) => {
       result = data;
     } else {
       const { data, error } = await supabase
-        .from('finals')
+        .from('final_submissions')
         .insert({
           student_id: studentId,
           ...updates
@@ -695,7 +695,7 @@ app.post('/api/final', async (req, res) => {
 app.get('/api/batches', async (req, res) => {
   try {
     const { data: batches, error } = await supabase
-      .from('batches')
+      .from('academic_batches')
       .select('*');
 
     if (error) throw error;
@@ -712,7 +712,7 @@ app.post('/api/batches', async (req, res) => {
     const { name, timeline, studentCount } = req.body;
 
     const { data: newBatch, error } = await supabase
-      .from('batches')
+      .from('academic_batches')
       .insert({
         name,
         timeline,
@@ -736,7 +736,7 @@ app.delete('/api/batches/:id', async (req, res) => {
     const { id } = req.params;
 
     const { error } = await supabase
-      .from('batches')
+      .from('academic_batches')
       .delete()
       .eq('id', id);
 
