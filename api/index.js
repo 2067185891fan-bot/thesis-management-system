@@ -128,7 +128,7 @@ app.post('/api/auth/register', async (req, res) => {
 app.get('/api/topics', async (req, res) => {
   try {
     const { data: topics, error } = await supabase
-      .from('topics')
+      .from('thesis_topics')
       .select('*');
 
     if (error) throw error;
@@ -145,7 +145,7 @@ app.post('/api/topics', async (req, res) => {
     const topicData = req.body;
 
     const { data: newTopic, error } = await supabase
-      .from('topics')
+      .from('thesis_topics')
       .insert({
         title: topicData.title,
         abstract: topicData.abstract,
@@ -175,7 +175,7 @@ app.put('/api/topics/:id', async (req, res) => {
     const updates = req.body;
 
     const { data: updatedTopic, error } = await supabase
-      .from('topics')
+      .from('thesis_topics')
       .update(updates)
       .eq('id', id)
       .select()
@@ -195,7 +195,7 @@ app.delete('/api/topics/:id', async (req, res) => {
     const { id } = req.params;
 
     const { error } = await supabase
-      .from('topics')
+      .from('thesis_topics')
       .delete()
       .eq('id', id);
 
@@ -215,7 +215,7 @@ app.put('/api/topics/:id/slots', async (req, res) => {
 
     // Get current topic
     const { data: topic, error: fetchError } = await supabase
-      .from('topics')
+      .from('thesis_topics')
       .select('occupied_slots')
       .eq('id', id)
       .single();
@@ -227,7 +227,7 @@ app.put('/api/topics/:id/slots', async (req, res) => {
       : Math.max(0, (topic.occupied_slots || 0) - 1);
 
     const { data: updatedTopic, error } = await supabase
-      .from('topics')
+      .from('thesis_topics')
       .update({ occupied_slots: newOccupied })
       .eq('id', id)
       .select()
@@ -253,7 +253,7 @@ app.get('/api/audits', async (req, res) => {
       // We need to filter by topic's advisor_name
       // First get topics by this advisor
       const { data: topics } = await supabase
-        .from('topics')
+        .from('thesis_topics')
         .select('title')
         .eq('advisor_name', advisor);
 
@@ -331,7 +331,7 @@ app.get('/api/taskbooks', async (req, res) => {
     if (advisor) {
       // Filter by topic's advisor
       const { data: topics } = await supabase
-        .from('topics')
+        .from('thesis_topics')
         .select('title')
         .eq('advisor_name', advisor);
 
@@ -961,13 +961,13 @@ app.post('/api/seed', async (req, res) => {
     // Insert topics
     for (const topic of NEW_TOPICS) {
       const { data: existing } = await supabase
-        .from('topics')
+        .from('thesis_topics')
         .select('id')
         .eq('title', topic.title)
         .single();
 
       if (!existing) {
-        const { error } = await supabase.from('topics').insert(topic);
+        const { error } = await supabase.from('thesis_topics').insert(topic);
         if (!error) {
           results.topics.push(topic.title);
         }
