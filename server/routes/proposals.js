@@ -132,12 +132,16 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const { is_submitted, history } = req.body;
+
+    const updateData = {};
+    if (is_submitted !== undefined) updateData.is_submitted = is_submitted;
+    if (history !== undefined) updateData.history = history;
 
     // Try by database id first, then by student_id
     let { data: updatedProposal, error } = await supabase
       .from('proposals')
-      .update(updates)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
@@ -146,7 +150,7 @@ router.put('/:id', async (req, res) => {
       // Fallback: try matching by student_id
       const result = await supabase
         .from('proposals')
-        .update(updates)
+        .update(updateData)
         .eq('student_id', id)
         .select()
         .single();
