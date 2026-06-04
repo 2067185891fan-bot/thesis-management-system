@@ -444,6 +444,11 @@ export function useMidterm(studentId, advisorName = null) {
       fetchedRef.current = true;
       fetchMidterm();
     }
+    // For student view: periodically refresh to pick up teacher verdicts
+    if (studentId && !advisorName) {
+      const interval = setInterval(fetchMidterm, 5000);
+      return () => clearInterval(interval);
+    }
   }, [studentId, advisorName]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { midterm, loading, error, fetchMidterm, updateMidterm, addComment };
@@ -516,6 +521,11 @@ export function useFinal(studentId, advisorName = null) {
     if (studentId) {
       fetchedRef.current = true;
       fetchFinal();
+    }
+    // For student view: periodically refresh to pick up teacher verdicts
+    if (studentId && !advisorName) {
+      const interval = setInterval(fetchFinal, 5000);
+      return () => clearInterval(interval);
     }
   }, [studentId, advisorName]); // eslint-disable-line react-hooks/exhaustive-deps
 
