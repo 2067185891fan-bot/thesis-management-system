@@ -93,8 +93,7 @@ router.post('/', async (req, res) => {
       instructorDept,
       instructorAvatar,
       status,
-      deadlineCountdown,
-      comments
+      deadlineCountdown
     } = req.body;
 
     // Check if final exists
@@ -169,11 +168,10 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, comments } = req.body;
+    const { status } = req.body;
 
     const updateData = {};
     if (status !== undefined) updateData.status = status;
-    if (comments !== undefined) updateData.comments = comments;
 
     // Try by database id first, then by student_id
     let { data: updatedFinal, error } = await supabase
