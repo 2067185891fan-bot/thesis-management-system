@@ -118,6 +118,9 @@ export default function StudentView({
   const selectedTopic = mySelection ? topics.find(t => t.id === mySelection.topicId) : null;
   const myTaskBook = taskBooks?.find(tb => tb.studentName === studentProfile?.name || tb.topicTitle === selectedTopic?.title);
 
+  // Check if selection is approved (gate for proposal/midterm/final stages)
+  const isSelectionApproved = mySelection && (mySelection.status === '初审通过' || mySelection.status === '最终批准');
+
   // Profile editing hooks and fields
   const [profileName, setProfileName] = useState(studentProfile?.name || '');
   const [profileDept, setProfileDept] = useState(studentProfile?.department || '');
@@ -631,21 +634,27 @@ export default function StudentView({
           >
             选题大厅
           </button>
-          <button 
-            onClick={() => setActiveTab('proposal')} 
-            className={`cursor-pointer pb-1 text-sm font-semibold transition-all border-b-2 ${activeTab === 'proposal' ? 'border-primary text-primary' : 'border-transparent text-[#40484d] hover:text-[#1d1d1f]'}`}
+          <button
+            onClick={() => isSelectionApproved && setActiveTab('proposal')}
+            disabled={!isSelectionApproved}
+            title={!isSelectionApproved ? '请先完成选题并通过导师审核' : ''}
+            className={`pb-1 text-sm font-semibold transition-all border-b-2 ${activeTab === 'proposal' ? 'border-primary text-primary' : 'border-transparent text-[#40484d]'} ${isSelectionApproved ? 'cursor-pointer hover:text-[#1d1d1f]' : 'cursor-not-allowed text-slate-300'}`}
           >
             开题报告
           </button>
-          <button 
-            onClick={() => setActiveTab('midterm')} 
-            className={`cursor-pointer pb-1 text-sm font-semibold transition-all border-b-2 ${activeTab === 'midterm' ? 'border-primary text-primary' : 'border-transparent text-[#40484d] hover:text-[#1d1d1f]'}`}
+          <button
+            onClick={() => isSelectionApproved && setActiveTab('midterm')}
+            disabled={!isSelectionApproved}
+            title={!isSelectionApproved ? '请先完成选题并通过导师审核' : ''}
+            className={`pb-1 text-sm font-semibold transition-all border-b-2 ${activeTab === 'midterm' ? 'border-primary text-primary' : 'border-transparent text-[#40484d]'} ${isSelectionApproved ? 'cursor-pointer hover:text-[#1d1d1f]' : 'cursor-not-allowed text-slate-300'}`}
           >
             中期汇报
           </button>
-          <button 
-            onClick={() => setActiveTab('final')} 
-            className={`cursor-pointer pb-1 text-sm font-semibold transition-all border-b-2 ${activeTab === 'final' ? 'border-primary text-primary' : 'border-transparent text-[#40484d] hover:text-[#1d1d1f]'}`}
+          <button
+            onClick={() => isSelectionApproved && setActiveTab('final')}
+            disabled={!isSelectionApproved}
+            title={!isSelectionApproved ? '请先完成选题并通过导师审核' : ''}
+            className={`pb-1 text-sm font-semibold transition-all border-b-2 ${activeTab === 'final' ? 'border-primary text-primary' : 'border-transparent text-[#40484d]'} ${isSelectionApproved ? 'cursor-pointer hover:text-[#1d1d1f]' : 'cursor-not-allowed text-slate-300'}`}
           >
             终稿提交
           </button>
@@ -1020,6 +1029,14 @@ export default function StudentView({
         {/* Tab 2: 开题报告 */}
         {activeTab === 'proposal' && (
           <div className="space-y-6 animate-fadeIn">
+          {!isSelectionApproved ? (
+            <div className="bg-white p-12 rounded-xl border border-[#c0c8cd]/40 text-center">
+              <span className="material-symbols-outlined text-5xl text-slate-300 mb-3 block">lock</span>
+              <h3 className="text-lg font-bold text-slate-400 mb-2">选题未通过，暂不可提交</h3>
+              <p className="text-sm text-slate-400">请先在"选题大厅"选择课题并等待导师审核通过后再提交开题报告。</p>
+              <button onClick={() => setActiveTab('selection')} className="mt-4 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold cursor-pointer hover:bg-[#1a5f7a]">前往选题</button>
+            </div>
+          ) : (<>
             {/* Header info */}
             <div className="bg-white p-6 rounded-xl border border-[#c0c8cd]/40 shadow-soft flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
@@ -1246,12 +1263,21 @@ export default function StudentView({
               </div>
 
             </div>
+            </>)}
           </div>
         )}
 
         {/* Tab 3: 中期进展 */}
         {activeTab === 'midterm' && (
           <div className="space-y-6 animate-fadeIn">
+          {!isSelectionApproved ? (
+            <div className="bg-white p-12 rounded-xl border border-[#c0c8cd]/40 text-center">
+              <span className="material-symbols-outlined text-5xl text-slate-300 mb-3 block">lock</span>
+              <h3 className="text-lg font-bold text-slate-400 mb-2">选题未通过，暂不可提交</h3>
+              <p className="text-sm text-slate-400">请先在"选题大厅"选择课题并等待导师审核通过后再提交中期报告。</p>
+              <button onClick={() => setActiveTab('selection')} className="mt-4 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold cursor-pointer hover:bg-[#1a5f7a]">前往选题</button>
+            </div>
+          ) : (<>
             {/* Header section */}
             <div className="bg-white p-6 rounded-xl border border-[#c0c8cd]/40 shadow-soft">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1518,12 +1544,21 @@ export default function StudentView({
               </div>
             </div>
 
+            </>)}
           </div>
         )}
 
         {/* Tab 4: 终稿提交 */}
         {activeTab === 'final' && (
           <div className="space-y-6 animate-fadeIn">
+          {!isSelectionApproved ? (
+            <div className="bg-white p-12 rounded-xl border border-[#c0c8cd]/40 text-center">
+              <span className="material-symbols-outlined text-5xl text-slate-300 mb-3 block">lock</span>
+              <h3 className="text-lg font-bold text-slate-400 mb-2">选题未通过，暂不可提交</h3>
+              <p className="text-sm text-slate-400">请先在"选题大厅"选择课题并等待导师审核通过后再提交终稿。</p>
+              <button onClick={() => setActiveTab('selection')} className="mt-4 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold cursor-pointer hover:bg-[#1a5f7a]">前往选题</button>
+            </div>
+          ) : (<>
             {/* Countdown header */}
             <div className="bg-[#ffdad6] text-on-error-container border border-error/20 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-2">
@@ -1785,7 +1820,7 @@ export default function StudentView({
                 确认信息无误，正式递交终稿大纲
               </button>
             </div>
-
+            </>)}
           </div>
         )}
 
@@ -2183,23 +2218,26 @@ export default function StudentView({
           <span className="material-symbols-outlined text-xl">account_tree</span>
           <span className="text-[9px] font-bold">选题大厅</span>
         </button>
-        <button 
-          onClick={() => setActiveTab('proposal')}
-          className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'proposal' ? 'text-primary' : 'text-[#70787d]'}`}
+        <button
+          onClick={() => isSelectionApproved && setActiveTab('proposal')}
+          disabled={!isSelectionApproved}
+          className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'proposal' ? 'text-primary' : isSelectionApproved ? 'text-[#70787d]' : 'text-slate-300'}`}
         >
           <span className="material-symbols-outlined text-xl">description</span>
           <span className="text-[9px] font-bold">开题大纲</span>
         </button>
-        <button 
-          onClick={() => setActiveTab('midterm')}
-          className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'midterm' ? 'text-primary' : 'text-[#70787d]'}`}
+        <button
+          onClick={() => isSelectionApproved && setActiveTab('midterm')}
+          disabled={!isSelectionApproved}
+          className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'midterm' ? 'text-primary' : isSelectionApproved ? 'text-[#70787d]' : 'text-slate-300'}`}
         >
           <span className="material-symbols-outlined text-xl">edit_note</span>
           <span className="text-[9px] font-bold">中期进展</span>
         </button>
-        <button 
-          onClick={() => setActiveTab('final')}
-          className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'final' ? 'text-primary' : 'text-[#70787d]'}`}
+        <button
+          onClick={() => isSelectionApproved && setActiveTab('final')}
+          disabled={!isSelectionApproved}
+          className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'final' ? 'text-primary' : isSelectionApproved ? 'text-[#70787d]' : 'text-slate-300'}`}
         >
           <span className="material-symbols-outlined text-xl">gavel</span>
           <span className="text-[9px] font-bold">定稿归档</span>
