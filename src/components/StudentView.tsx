@@ -334,37 +334,47 @@ export default function StudentView({
     const file = e.target.files?.[0];
     if (!file || !uploadState) return;
 
-    // Validate file size (max 20MB for base64 storage)
-    if (file.size > 20 * 1024 * 1024) {
-      showToast('error', '文件过大', '文件大小不能超过 20MB');
+    // Validate file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      showToast('error', '文件过大', '文件大小不能超过 50MB');
       setUploadState(null);
       return;
     }
 
-    showToast('info', '正在读取文件', `正在处理: ${file.name}`);
-    setUploadState(prev => prev ? { ...prev, progress: 30 } : null);
+    const currentField = uploadState.field;
+    const studentId = studentProfile?.id || 'unknown';
+    const folder = currentField.startsWith('proposal') ? 'proposals'
+      : currentField.startsWith('midterm') ? 'midterm'
+      : 'final';
+
+    showToast('info', '开始上传', `正在上传文件: ${file.name}`);
+    setUploadState(prev => prev ? { ...prev, progress: 20 } : null);
 
     try {
-      const { readFileAsDataUrl } = await import('../lib/upload');
-      const dataUrl = await readFileAsDataUrl(file);
+      const { uploadFile } = await import('../lib/upload');
+      const result = await uploadFile(file, folder, studentId);
 
       setUploadState(prev => prev ? { ...prev, progress: 100 } : null);
 
-      const fileInfo = JSON.stringify({
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        url: dataUrl
-      });
-
-      setTimeout(() => {
-        uploadState.onComplete?.(fileInfo);
+      if (result) {
+        const fileInfo = JSON.stringify({
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: result.url
+        });
+        setTimeout(() => {
+          uploadState.onComplete?.(fileInfo);
+          setUploadState(null);
+          showToast('success', '上传成功', `文件 "${file.name}" 已安全存储。`);
+        }, 300);
+      } else {
         setUploadState(null);
-        showToast('success', '上传成功', `文件 "${file.name}" 已安全存储。`);
-      }, 300);
+        showToast('error', '上传失败', `文件 "${file.name}" 上传失败，请检查 Supabase Storage 配置。`);
+      }
     } catch (err: any) {
       setUploadState(null);
-      showToast('error', '上传失败', `文件读取失败: ${err.message || '未知错误'}`);
+      showToast('error', '上传失败', `文件上传出错: ${err.message || '未知错误'}`);
     }
 
     // Reset file input

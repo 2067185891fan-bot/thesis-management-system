@@ -347,22 +347,18 @@ export function useProposals(studentId, advisorName = null) {
 
   const updateProposal = useCallback(async (updates) => {
     if (!studentId) return;
-    try {
-      const result = await execute(() => proposalsApi.createOrUpdate({
-        studentId,
-        abstractText: updates.abstractText !== undefined ? updates.abstractText : proposal.abstractText,
-        proposalFile: updates.proposalFile !== undefined ? updates.proposalFile : proposal.proposalFile,
-        isSubmitted: updates.isSubmitted !== undefined ? updates.isSubmitted : proposal.isSubmitted,
-        history: updates.history || proposal.history,
-        comments: updates.comments !== undefined ? updates.comments : proposal.comments
-      }));
-      if (result && result.success) {
-        await fetchProposal();
-      }
-      return result;
-    } catch (err) {
-      console.error('Failed to update proposal:', err);
+    const result = await execute(() => proposalsApi.createOrUpdate({
+      studentId,
+      abstractText: updates.abstractText !== undefined ? updates.abstractText : proposal.abstractText,
+      proposalFile: updates.proposalFile !== undefined ? updates.proposalFile : proposal.proposalFile,
+      isSubmitted: updates.isSubmitted !== undefined ? updates.isSubmitted : proposal.isSubmitted,
+      history: updates.history || proposal.history,
+      comments: updates.comments !== undefined ? updates.comments : proposal.comments
+    }));
+    if (result && result.success) {
+      await fetchProposal();
     }
+    return result;
   }, [studentId, proposal, execute, fetchProposal]);
 
   useEffect(() => {
