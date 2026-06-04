@@ -525,8 +525,12 @@ export default function StudentView({
         ...proposal.history
       ]
     };
-    onUpdateProposal(updated);
-    showToast('success', '开题正式提交', '您的开题大纲摘要与文件已移交给教研室指导名录，请等待导师初评签字。');
+    try {
+      await onUpdateProposal(updated);
+      showToast('success', '开题正式提交', '您的开题大纲摘要与文件已移交给教研室指导名录，请等待导师初评签字。');
+    } catch {
+      showToast('error', '提交失败', '数据保存到服务器失败，请检查网络后重试。');
+    }
   };
 
   const handleProposalDraft = () => {
