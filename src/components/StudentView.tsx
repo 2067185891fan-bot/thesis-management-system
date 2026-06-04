@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useState, useEffect, useRef, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   UserProfile, 
@@ -297,50 +297,42 @@ export default function StudentView({
   };
 
   // Real File Upload Handler
-  const [uploadState, setUploadState] = useState<{
-    field: string;
-    progress: number;
-    onComplete: ((name: string) => void) | null;
-  } | null>(null);
+  const uploadCallbackRef = useRef<((info: string) => void) | null>(null);
+  const [uploadField, setUploadField] = useState<string | null>(null);
 
   const triggerFileUpload = (field: string, onComplete: (name: string) => void) => {
-    if (uploadState !== null) {
+    if (uploadCallbackRef.current) {
       showToast('warning', '上载进行中', '已有文件传输信道正在运行，请勿重复发起。');
       return;
     }
-    // Store callback and trigger file input
-    setUploadState({ field, progress: 0, onComplete });
+    uploadCallbackRef.current = onComplete;
+    setUploadField(field);
     setTimeout(() => {
       const fileInput = document.getElementById('hidden-file-input') as HTMLInputElement;
       if (fileInput) {
         fileInput.value = '';
-        // Listen for cancel event (fires when dialog closes without file selection)
-        const onCancel = () => {
-          setUploadState(null);
-          fileInput.removeEventListener('cancel', onCancel);
-        };
-        fileInput.addEventListener('cancel', onCancel);
         fileInput.click();
       }
     }, 100);
   };
 
   const cancelUpload = () => {
-    setUploadState(null);
+    uploadCallbackRef.current = null;
+    setUploadField(null);
     showToast('info', '上传已取消', '文件上传已取消。');
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !uploadState) return;
+    const callback = uploadCallbackRef.current;
+    if (!file || !callback) return;
 
     if (file.size > 10 * 1024 * 1024) {
       showToast('error', '文件过大', '文件大小不能超过 10MB');
-      setUploadState(null);
+      uploadCallbackRef.current = null;
       return;
     }
 
-    // Read file as base64 data URL for storage
     showToast('info', '正在读取', `正在处理: ${file.name}`);
     const reader = new FileReader();
     reader.onload = () => {
@@ -348,14 +340,16 @@ export default function StudentView({
         name: file.name,
         size: file.size,
         type: file.type,
-        url: reader.result // base64 data URL
+        url: reader.result
       });
-      uploadState.onComplete?.(fileInfo);
-      setUploadState(null);
+      callback(fileInfo);
+      uploadCallbackRef.current = null;
+      setUploadField(null);
       showToast('success', '文件已就绪', `"${file.name}" 已读取，点击提交保存。`);
     };
     reader.onerror = () => {
-      setUploadState(null);
+      uploadCallbackRef.current = null;
+      setUploadField(null);
       showToast('error', '读取失败', '文件读取出错，请重试。');
     };
     reader.readAsDataURL(file);
@@ -1124,24 +1118,18 @@ export default function StudentView({
                     className="border-2 border-dashed border-[#c0c8cd] rounded-xl p-8 flex flex-col items-center justify-center gap-3 hover:border-primary hover:bg-primary/5 transition-all text-center cursor-pointer relative group overflow-hidden"
                     onClick={() => triggerFileUpload('proposal', setProposalFile)}
                   >
-                    {uploadState?.field === 'proposal' ? (
+                    {uploadField === 'proposal' ? (
                       <div className="space-y-2 w-full max-w-xs py-2" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex justify-between items-center text-xs font-bold text-primary">
-                          <span className="flex items-center gap-1.5">
-                            <span className="inline-block w-2.5 h-2.5 bg-secondary rounded-full animate-ping"></span>
-                            上载中...
-                          </span>
-                          <span>{uploadState?.progress || 0}%</span>
-                        </div>
-                        <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                          <div className="bg-secondary h-full transition-all duration-150" style={{ width: `${uploadState?.progress || 0}%` }}></div>
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
+                          <span className="inline-block w-2.5 h-2.5 bg-secondary rounded-full animate-ping"></span>
+                          正在读取文件...
                         </div>
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); cancelUpload(); }}
                           className="text-[10px] text-error font-bold hover:underline cursor-pointer"
                         >
-                          取消上传
+                          取消
                         </button>
                       </div>
                     ) : (
@@ -1385,14 +1373,11 @@ export default function StudentView({
                       onClick={() => triggerFileUpload('midterm-report', setMidtermReportFile)}
                       className="border-2 border-dashed border-[#c0c8cd] hover:border-primary hover:bg-[#eef5f7] transition-all p-5 rounded-lg flex flex-col items-center justify-center cursor-pointer text-center group/btn overflow-hidden min-h-[110px]"
                     >
-                      {uploadState?.field === 'midterm-report' ? (
+                      {uploadField === 'midterm-report' ? (
                         <div className="space-y-1.5 w-full" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex justify-between items-center text-[10px] font-bold text-primary">
-                            <span>上传中...</span>
-                            <span>{uploadState?.progress || 0}%</span>
-                          </div>
-                          <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                            <div className="bg-secondary h-full" style={{ width: `${uploadState?.progress || 0}%` }}></div>
+                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-primary">
+                            <span className="inline-block w-2 h-2 bg-secondary rounded-full animate-ping"></span>
+                            正在读取文件...
                           </div>
                           <button
                             type="button"
@@ -1429,14 +1414,11 @@ export default function StudentView({
                       onClick={() => triggerFileUpload('midterm-code', setMidtermCodeFile)}
                       className="border-2 border-dashed border-[#c0c8cd] hover:border-primary hover:bg-[#eef5f7] transition-all p-5 rounded-lg flex flex-col items-center justify-center cursor-pointer text-center group/btn overflow-hidden min-h-[110px]"
                     >
-                      {uploadState?.field === 'midterm-code' ? (
+                      {uploadField === 'midterm-code' ? (
                         <div className="space-y-1.5 w-full" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex justify-between items-center text-[10px] font-bold text-primary">
-                            <span>上传中...</span>
-                            <span>{uploadState?.progress || 0}%</span>
-                          </div>
-                          <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                            <div className="bg-secondary h-full" style={{ width: `${uploadState?.progress || 0}%` }}></div>
+                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-primary">
+                            <span className="inline-block w-2 h-2 bg-secondary rounded-full animate-ping"></span>
+                            正在读取文件...
                           </div>
                           <button
                             type="button"
@@ -1678,14 +1660,11 @@ export default function StudentView({
                         onClick={() => triggerFileUpload('plagiarism', setPlagFile)}
                         className="border-2 border-dashed border-[#c0c8cd] hover:border-primary hover:bg-[#eef5f7] transition-all rounded-lg flex-1 p-6 flex flex-col items-center justify-center cursor-pointer text-center group"
                       >
-                        {uploadState?.field === 'plagiarism' ? (
+                        {uploadField === 'plagiarism' ? (
                           <div className="space-y-2">
-                            <div className="flex justify-between items-center text-[10px] font-bold text-primary">
-                              <span>正在上传查重报告...</span>
-                              <span>{uploadState?.progress || 0}%</span>
-                            </div>
-                            <div className="w-32 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                              <div className="bg-secondary h-full" style={{ width: `${uploadState?.progress || 0}%` }}></div>
+                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-primary">
+                              <span className="inline-block w-2 h-2 bg-secondary rounded-full animate-ping"></span>
+                              正在读取查重报告...
                             </div>
                           </div>
                         ) : (
@@ -1735,7 +1714,7 @@ export default function StudentView({
                       className="px-6 py-2.5 bg-primary text-white text-xs font-semibold rounded-full hover:opacity-90 cursor-pointer flex items-center gap-1.5 shadow"
                     >
                       <span className="material-symbols-outlined text-sm">add</span>
-                      {uploadState?.field === 'thesis' ? `上传中 ${uploadState?.progress || 0}%` : (thesisFile ? '更换定稿文件' : '选择论文定稿大纲')}
+                      {uploadField === 'thesis' ? '正在读取文件...' : (thesisFile ? '更换定稿文件' : '选择论文定稿大纲')}
                     </button>
 
                     {thesisFile && (

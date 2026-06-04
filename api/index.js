@@ -7,6 +7,10 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+app.use((req, res, next) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  next();
+});
 
 // Supabase initialization
 const supabaseUrl = process.env.SUPABASE_URL;

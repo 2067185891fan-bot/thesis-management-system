@@ -24,6 +24,11 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+// Ensure UTF-8 encoding for Chinese characters
+app.use((req, res, next) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  next();
+});
 
 // API Routes
 app.use('/api/auth', authRoutes);
