@@ -526,9 +526,14 @@ export default function StudentView({
   };
 
   const handleMidtermSubmit = async () => {
-    // Block if already submitted (teacher needs to review first)
+    // Block if already submitted or approved
     if (midterm.isSubmitted) {
-      showToast('warning', '已提交审核中', '您的中期报告已提交，请等待导师审核。');
+      const hasVerdict = midterm.comments && midterm.comments.length > 0;
+      if (hasVerdict) {
+        showToast('info', '已通过无需重复提交', '您的中期报告已通过审核。');
+      } else {
+        showToast('warning', '已提交审核中', '您的中期报告已提交，请等待导师审核。');
+      }
       return;
     }
     if (!midtermReportFile && !midtermCodeFile) {
@@ -1391,13 +1396,15 @@ export default function StudentView({
                         <>
                           <span className="material-symbols-outlined text-2xl text-primary mb-1">check_circle</span>
                           <span className="text-xs font-bold text-[#161d1f] mb-1">{getFileDisplayName(midtermReportFile)}</span>
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); setMidtermReportFile(null); }}
-                            className="text-[10px] text-error font-bold hover:underline cursor-pointer"
-                          >
-                            重新上传
-                          </button>
+                          {!midterm.isSubmitted && (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); setMidtermReportFile(null); }}
+                              className="text-[10px] text-error font-bold hover:underline cursor-pointer"
+                            >
+                              重新上传
+                            </button>
+                          )}
                         </>
                       ) : (
                         <>
@@ -1432,13 +1439,15 @@ export default function StudentView({
                         <>
                           <span className="material-symbols-outlined text-2xl text-primary mb-1">check_circle</span>
                           <span className="text-xs font-bold text-[#161d1f] mb-1">{getFileDisplayName(midtermCodeFile)}</span>
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); setMidtermCodeFile(null); }}
-                            className="text-[10px] text-error font-bold hover:underline cursor-pointer"
-                          >
-                            重新上传
-                          </button>
+                          {!midterm.isSubmitted && (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); setMidtermCodeFile(null); }}
+                              className="text-[10px] text-error font-bold hover:underline cursor-pointer"
+                            >
+                              重新上传
+                            </button>
+                          )}
                         </>
                       ) : (
                         <>
