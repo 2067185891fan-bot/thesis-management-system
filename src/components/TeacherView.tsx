@@ -693,7 +693,14 @@ export default function TeacherView({
                       )}
                     </div>
 
-                    {/* Evaluator Form */}
+                    {/* Evaluator Form — only show if not yet approved */}
+                    {proposal.history[0]?.status === '已通过' ? (
+                      <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
+                        <span className="material-symbols-outlined text-emerald-600 text-2xl">check_circle</span>
+                        <p className="text-emerald-700 font-bold text-sm mt-1">开题报告已审核通过</p>
+                        <p className="text-emerald-600 text-xs mt-1">学生可进入下一阶段。</p>
+                      </div>
+                    ) : (
                     <div className="space-y-3 bg-white border border-slate-200/80 p-4 rounded-xl">
                       <h4 className="font-bold text-xs text-[#161d1f] flex items-center gap-1">
                         <span className="material-symbols-outlined text-sm text-primary">rate_review</span>
@@ -721,6 +728,7 @@ export default function TeacherView({
                         </button>
                       </div>
                     </div>
+                    )}
 
                     {/* Proposal history checklist */}
                     <div className="space-y-2">
