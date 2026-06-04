@@ -201,6 +201,10 @@ router.put('/:id', async (req, res) => {
       throw error;
     }
 
+    if (!updatedFinal) {
+      return res.status(404).json({ success: false, message: '未找到对应的终稿记录' });
+    }
+
     return res.json({ success: true, final: updatedFinal });
   } catch (error) {
     console.error('Update final error:', error);

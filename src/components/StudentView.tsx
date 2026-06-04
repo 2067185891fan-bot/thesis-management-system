@@ -469,9 +469,13 @@ export default function StudentView({
   const categories = ['all', ...Array.from(new Set(topics.map(t => t.category)))];
 
   // Action handlers
-  const handleProposalSubmit = () => {
+  const handleProposalSubmit = async () => {
     if (mySelection?.status === '已退回') {
-      showToast('error', '无法提交开题', '您的选题申请已被导师退回，请先返回“课题大厅”清除退回记录并重新选题。');
+      showToast('error', '无法提交开题', '您的选题申请已被导师退回，请先返回”课题大厅”清除退回记录并重新选题。');
+      return;
+    }
+    if (!mySelection || mySelection.status === '选题待审核') {
+      showToast('error', '无法提交开题', '您的选题尚未通过导师审核，请等待选题通过后再提交开题报告。');
       return;
     }
     if (!proposalFile) {
@@ -505,7 +509,7 @@ export default function StudentView({
     setTimeout(() => setIsProposalSavedDraft(false), 3000);
   };
 
-  const handleMidtermSubmit = () => {
+  const handleMidtermSubmit = async () => {
     if (!midtermReportFile && !midtermCodeFile) {
       showToast('error', '未检测到进度文档', '请先上传中期研究报告附件。');
       return;
@@ -538,26 +542,32 @@ export default function StudentView({
       attachments,
       isSubmitted: true
     };
-    onUpdateMidterm(updated);
+    await onUpdateMidterm(updated);
     showToast('success', '中期审阅进行中', '中期答辩申报纪要正式递达到负责教研组！质量评估结果及导师意见将第一时间推送。');
   };
 
-  const handleMidtermDraft = () => {
+  const handleMidtermDraft = async () => {
     const now = new Date();
     const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
     setMidtermSavedTime(timeStr);
+    // Only update explanation and lastSaved — preserve teacher's isSubmitted/comments/status
     const updated = {
       ...midterm,
       explanation: midtermExplanation,
       lastSaved: timeStr
     };
-    onUpdateMidterm(updated);
+    await onUpdateMidterm(updated);
     showToast('success', '草稿同步成功', `研究进展说明已于 ${timeStr} 成功实现离线多重云备份。`);
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     if (!thesisFile) {
       showToast('error', '未找到终稿定稿', '您必须选定并上载完成格式标定的论文终定稿 PDF 文本。');
+      return;
+    }
+    // Prevent duplicate submission while under review
+    if (finalSubmission.status === '审核中') {
+      showToast('warning', '已提交审核', '您的终稿正在审核中，请勿重复提交。');
       return;
     }
     // Parse file info from JSON string
@@ -588,7 +598,7 @@ export default function StudentView({
       finalThesisFile: { id: 'tf_new', name: thesisFileInfo.name, size: formatFileSize(thesisFileInfo.size), type: thesisFileInfo.type || 'pdf' },
       status: '审核中' as const
     };
-    onUpdateFinal(updated);
+    await onUpdateFinal(updated);
     showToast('success', '终程双审已激活', '恭喜！本科毕业设计论文定稿及查重契证已交由教务委员会备案审议。');
   };
 
@@ -825,10 +835,7 @@ export default function StudentView({
                             )
                           ) : (
                             <button
-                              onClick={() => {
-                                onSelectTopic(topic.id);
-                                showToast('success', '选题抢报登记成功', `已一键投出《${topic.title}》。可以移步[我的选择]核对阶段审核轨迹！`);
-                              }}
+                              onClick={() => onSelectTopic(topic.id)}
                               disabled={isOccupiedFull}
                               className={`w-full py-2.5 rounded-lg text-xs font-bold transition-all active:scale-[0.98] cursor-pointer ${
                                 isOccupiedFull 
@@ -2280,7 +2287,6 @@ export default function StudentView({
                     } else {
                       onSelectTopic(viewingTopic.id);
                       setViewingTopic(null);
-                      showToast('success', '选题抢报登记成功', `已一键投出《${viewingTopic.title}》。可以移步[我的选择]核对阶段审核轨迹！`);
                     }
                   }}
                   className="px-3 py-2 bg-primary hover:bg-[#1a5f7a] text-white text-xs font-bold rounded-lg cursor-pointer transition-colors shrink-0"

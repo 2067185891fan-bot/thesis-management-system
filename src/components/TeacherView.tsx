@@ -33,6 +33,7 @@ interface TeacherViewProps {
   showToast: (type: 'success' | 'error' | 'info' | 'warning', title: string, message: string) => void;
   proposal: ProposalSubmission;
   onUpdateProposal: React.Dispatch<React.SetStateAction<ProposalSubmission>>;
+  onRefetchProposal: () => Promise<void>;
   midterm: MidtermReport;
   onUpdateMidterm: React.Dispatch<React.SetStateAction<MidtermReport>>;
   onAddComment: (advisorName: string, role: string, comment: string) => Promise<any>;
@@ -61,7 +62,8 @@ export default function TeacherView({
   onUpdateFinal,
   students,
   selectedStudentId,
-  onSelectStudent
+  onSelectStudent,
+  onRefetchProposal
 }: TeacherViewProps) {
   // Local interface states
   const [activeAuditId, setActiveAuditId] = useState<string | null>(null);
@@ -150,20 +152,9 @@ export default function TeacherView({
       });
       const result = await response.json();
       if (result.success) {
-        onUpdateProposal(prev => ({
-          ...prev,
-          isSubmitted: status === '已通过',
-          history: [
-            {
-              id: `ph_new_${Date.now()}`,
-              fileName: prev.proposalFile?.name || '开题报告文档大纲.docx',
-              date: new Date().toLocaleString('zh-CN'),
-              status: status
-            },
-            ...prev.history
-          ],
-          comments: [newComment, ...(prev.comments || [])]
-        }));
+        // Raw fetch already persisted history + comments to API.
+        // Refetch from API to sync local state (avoids duplicate history entries).
+        await onRefetchProposal();
       }
     } catch (err) {
       console.error('Failed to update proposal:', err);
@@ -193,7 +184,7 @@ export default function TeacherView({
 
     // Call API to update midterm
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/midterm/${selectedStudentId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/midterm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -211,17 +202,19 @@ export default function TeacherView({
           isSubmitted: status === '已通过',
           comments: [newComment, ...prev.comments]
         }));
+        setMidtermOpinion('');
+        showToast(
+          status === '已通过' ? 'success' : 'warning',
+          `中期成果审核判定: ${status === '已通过' ? '合格通过' : '限期整改'}`,
+          `进度锚点 (${interactiveProgress}%) 及对应指导建议已同步至学生看板。`
+        );
+      } else {
+        showToast('error', '中期评审失败', '服务器返回错误，请稍后重试。');
       }
     } catch (err) {
       console.error('Failed to update midterm:', err);
+      showToast('error', '中期评审失败', '网络请求失败，请检查连接后重试。');
     }
-
-    setMidtermOpinion('');
-    showToast(
-      status === '已通过' ? 'success' : 'warning',
-      `中期成果审核判定: ${status === '已通过' ? '合格通过' : '限期整改'}`,
-      `进度锚点 (${interactiveProgress}%) 及对应指导建议已同步至学生看板。`
-    );
   };
 
   const handleFinalVerdict = async (status: '已通过' | '已驳回') => {
@@ -254,17 +247,19 @@ export default function TeacherView({
           status,
           comments: [newComment, ...(prev.comments || [])]
         }));
+        setFinalOpinion('');
+        showToast(
+          status === '已通过' ? 'success' : 'warning',
+          `学术大论终审判定为: ${status}`,
+          status === '已通过' ? '准予进入接续的毕业论文公开答辩资格核实程序。' : '论文已退回至学生工作台重构。'
+        );
+      } else {
+        showToast('error', '终稿评审失败', '服务器返回错误，请稍后重试。');
       }
     } catch (err) {
       console.error('Failed to update final:', err);
+      showToast('error', '终稿评审失败', '网络请求失败，请检查连接后重试。');
     }
-
-    setFinalOpinion('');
-    showToast(
-      status === '已通过' ? 'success' : 'warning',
-      `学术大论终审判定为: ${status}`,
-      status === '已通过' ? '准予进入接续的毕业论文公开答辩资格核实程序。' : '论文已退回至学生工作台重构。'
-    );
   };
 
   const handleSendGuidance = async (e: React.FormEvent) => {

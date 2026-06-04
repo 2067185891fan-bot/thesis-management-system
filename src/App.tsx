@@ -190,7 +190,7 @@ export default function App() {
 
   // Student-specific hooks
   const studentId = user?.role === 'student' ? user.id : (role === 'teacher' ? selectedStudentId : null);
-  const { proposal, updateProposal } = useProposals(studentId, advisorName);
+  const { proposal, updateProposal, fetchProposal } = useProposals(studentId, advisorName);
   const { midterm, updateMidterm, addComment } = useMidterm(studentId, advisorName);
   const { finalSubmission, updateFinal } = useFinal(studentId, advisorName);
 
@@ -334,14 +334,37 @@ export default function App() {
     if (mySelection) {
       const topicId = mySelection.topicId;
       const status = mySelection.status;
+      const studentId = user?.id || JSON.parse(localStorage.getItem('thesis_app_current_user') || '{}').id;
 
-      // Clear local state
+      // Clear local state first for responsive UI
       setMySelection(null);
       localStorage.removeItem('thesis_app_my_selection_v3');
 
-      // Only release slot if not already rejected (slot was released by teacher)
+      // Release slot if not already rejected (slot was freed by teacher on rejection)
       if (status !== '已退回') {
         await updateSlots(topicId, false);
+      }
+
+      // Delete the audit record from DB so student can re-select
+      // (otherwise the old audit blocks new selections via the duplicate check)
+      if (studentId) {
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/audits`);
+          const data = await response.json();
+          if (data.success) {
+            const topic = topics.find(t => t.id === topicId);
+            const auditToDelete = data.audits.find(
+              (a: any) => a.student_id === studentId && a.topic_title === topic?.title
+            );
+            if (auditToDelete) {
+              await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/audits/${auditToDelete.id}`, {
+                method: 'DELETE'
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Failed to delete audit record:', err);
+        }
       }
 
       showToast('info', '已清除', '选题记录已清除，您可以重新选择课题。');
@@ -471,6 +494,7 @@ export default function App() {
           showToast={showToast}
           proposal={proposal}
           onUpdateProposal={updateProposal}
+          onRefetchProposal={fetchProposal}
           midterm={midterm}
           onUpdateMidterm={updateMidterm}
           onAddComment={addComment}
