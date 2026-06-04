@@ -244,6 +244,14 @@ export function useAudits(advisorName = null) {
     fetchAudits();
   }, [advisorName]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // For student view: periodically refresh to pick up teacher approval/rejection
+  useEffect(() => {
+    if (advisorName === null) {
+      const interval = setInterval(fetchAudits, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [advisorName, fetchAudits]);
+
   return { audits, loading, error, fetchAudits, createAudit, updateAudit };
 }
 
@@ -288,11 +296,16 @@ export function useTaskBooks(advisorName = null) {
   }, [execute, fetchTaskBooks]);
 
   useEffect(() => {
-    if (advisorName !== null || !fetchedRef.current) {
-      fetchedRef.current = true;
-      fetchTaskBooks();
-    }
+    fetchTaskBooks();
   }, [advisorName]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // For student view: periodically refresh to pick up teacher-created taskbooks
+  useEffect(() => {
+    if (advisorName === null) {
+      const interval = setInterval(fetchTaskBooks, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [advisorName, fetchTaskBooks]);
 
   return { taskBooks, loading, error, fetchTaskBooks, updateTaskBook };
 }
