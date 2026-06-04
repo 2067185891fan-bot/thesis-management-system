@@ -210,36 +210,18 @@ export default function TeacherView({
       bulletType: status === '已通过' ? 'active' : 'expired'
     };
 
-    // Save to final record (status + comments)
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/final/${selectedStudentId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status,
-          comments: [newComment, ...(finalSubmission.comments || [])]
-        })
-      });
-      const result = await response.json();
-      if (result.success) {
-        onUpdateFinal(prev => ({
-          ...prev,
-          status,
-          comments: [newComment, ...(prev.comments || [])]
-        }));
-        setFinalOpinion('');
-        showToast(
-          status === '已通过' ? 'success' : 'warning',
-          `学术大论终审判定为: ${status}`,
-          status === '已通过' ? '准予进入接续的毕业论文公开答辩资格核实程序。' : '论文已退回至学生工作台重构。'
-        );
-      } else {
-        showToast('error', '终稿评审失败', '服务器返回错误，请稍后重试。');
-      }
-    } catch (err) {
-      console.error('Failed to update final:', err);
-      showToast('error', '终稿评审失败', '网络请求失败，请检查连接后重试。');
-    }
+    const updated = {
+      ...finalSubmission,
+      status,
+      comments: [newComment, ...(finalSubmission.comments || [])]
+    };
+    await onUpdateFinal(updated);
+    setFinalOpinion('');
+    showToast(
+      status === '已通过' ? 'success' : 'warning',
+      `学术大论终审判定为: ${status}`,
+      status === '已通过' ? '准予进入接续的毕业论文公开答辩资格核实程序。' : '论文已退回至学生工作台重构。'
+    );
   };
 
   const handleSendGuidance = async (e: React.FormEvent) => {
@@ -885,6 +867,12 @@ export default function TeacherView({
                     </div>
 
                     {/* Evaluator judgement input */}
+                    {finalSubmission.comments && finalSubmission.comments.length > 0 ? (
+                      <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
+                        <span className="material-symbols-outlined text-emerald-600 text-2xl">check_circle</span>
+                        <p className="text-emerald-700 font-bold text-sm mt-1">终稿已审核：{finalSubmission.status}</p>
+                      </div>
+                    ) : (
                     <div className="space-y-3 bg-white border border-slate-200 p-4 rounded-xl">
                       <h4 className="font-bold text-xs text-[#161d1f] flex items-center gap-1">
                         <span className="material-symbols-outlined text-sm text-primary">gavel</span>
@@ -912,6 +900,7 @@ export default function TeacherView({
                         </button>
                       </div>
                     </div>
+                    )}
                   </div>
                 )}
               </div>
