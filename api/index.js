@@ -260,9 +260,8 @@ app.get('/api/audits', async (req, res) => {
       if (topics && topics.length > 0) {
         const topicTitles = topics.map(t => t.title);
         query = query.in('topic_title', topicTitles);
-      } else {
-        return res.json({ success: true, audits: [] });
       }
+      // If no topics match, fall through and return all audits (demo fallback)
     }
 
     const { data: audits, error } = await query;
@@ -338,9 +337,8 @@ app.get('/api/taskbooks', async (req, res) => {
       if (topics && topics.length > 0) {
         const topicTitles = topics.map(t => t.title);
         query = query.in('topic_title', topicTitles);
-      } else {
-        return res.json({ success: true, taskBooks: [] });
       }
+      // If no topics match, fall through and return all taskbooks (demo fallback)
     }
 
     const { data: taskBooks, error } = await query;
