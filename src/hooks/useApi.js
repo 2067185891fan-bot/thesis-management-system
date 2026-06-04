@@ -522,11 +522,6 @@ export function useFinal(studentId, advisorName = null) {
       fetchedRef.current = true;
       fetchFinal();
     }
-    // For student view: periodically refresh to pick up teacher verdicts
-    if (studentId && !advisorName) {
-      const interval = setInterval(fetchFinal, 5000);
-      return () => clearInterval(interval);
-    }
   }, [studentId, advisorName]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { finalSubmission, loading, error, fetchFinal, updateFinal };
