@@ -175,7 +175,7 @@ export default function App() {
     };
 
     syncSelectionStatus();
-  }, [user, topics, role]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, topics, role, audits]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Teacher: selected student for viewing details
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
