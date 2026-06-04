@@ -383,7 +383,7 @@ export default function StudentView({
   const [plagInst, setPlagInst] = useState(finalSubmission.plagiarismInstitution);
   const [plagFile, setPlagFile] = useState<string | null>(finalSubmission.plagiarismReport?.name || null);
   const [thesisFile, setThesisFile] = useState<string | null>(finalSubmission.finalThesisFile?.name || null);
-  const [timeState, setTimeState] = useState(finalSubmission.deadlineCountdown);
+  const [timeState, setTimeState] = useState(finalSubmission.deadlineCountdown || { days: 0, hours: '00', minutes: '00', seconds: '00' });
 
   // Synchronizers to unify student-teacher operations instantly upon switching views
   useEffect(() => {
