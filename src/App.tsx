@@ -75,11 +75,13 @@ export default function App() {
   const { audits, createAudit, updateAudit } = useAudits(advisorName);
   const { taskBooks, updateTaskBook, fetchTaskBooks } = useTaskBooks(advisorName);
 
-  // Teacher's student list derived from audits
+  // Teacher's student list derived from audits (exclude rejected)
   const teacherStudents = useMemo(() => {
     if (role !== 'teacher' || !audits.length) return [];
     const seen = new Map();
     for (const a of audits) {
+      // Skip rejected audits — student is no longer under this teacher's guidance
+      if (a.status === '已驳回') continue;
       if (!seen.has(a.studentId)) {
         seen.set(a.studentId, { id: a.studentId, name: a.studentName, topicTitle: a.topicTitle });
       }
@@ -348,51 +350,61 @@ export default function App() {
 
   // Faculty operations
   const handleAuditSubmit = async (id: string, status: '已通过' | '已驳回') => {
-    await updateAudit(id, status);
+    try {
+      await updateAudit(id, status);
 
-    const targetAudit = audits.find(a => a.id === id);
-
-    // If approved, auto-create a taskbook for the student
-    if (status === '已通过' && targetAudit) {
-      try {
-        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/taskbooks`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            studentName: targetAudit.studentName,
-            topicTitle: targetAudit.topicTitle
-          })
-        });
-        // Refresh taskbooks list
-        await fetchTaskBooks();
-      } catch (err) {
-        console.error('Failed to auto-create taskbook:', err);
-      }
-    }
-
-    // If rejected, release the slot
-    if (status === '已驳回' && targetAudit) {
-      const topic = topics.find(t => t.title === targetAudit.topicTitle);
-      if (topic) {
-        await updateSlots(topic.id, false);
-      }
-    }
-
-    // Sync student selection if this is their application
-    if (mySelection && user) {
       const targetAudit = audits.find(a => a.id === id);
-      if (targetAudit && targetAudit.studentId === user.id) {
-        const matchedTopic = topics.find(t => t.id === mySelection.topicId);
-        if (matchedTopic && matchedTopic.title === targetAudit.topicTitle) {
-          setMySelection(prev => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              status: status === '已通过' ? '初审通过' : '已退回'
-            };
+
+      // If approved, auto-create a taskbook for the student
+      if (status === '已通过' && targetAudit) {
+        try {
+          await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/taskbooks`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              studentName: targetAudit.studentName,
+              topicTitle: targetAudit.topicTitle
+            })
           });
+          // Refresh taskbooks list
+          await fetchTaskBooks();
+        } catch (err) {
+          console.error('Failed to auto-create taskbook:', err);
         }
       }
+
+      // If rejected, release the slot
+      if (status === '已驳回' && targetAudit) {
+        const topic = topics.find(t => t.title === targetAudit.topicTitle);
+        if (topic) {
+          try {
+            await updateSlots(topic.id, false);
+          } catch (err) {
+            console.error('Failed to release slot after rejection:', err);
+            showToast('error', '名额释放失败', '审核状态已更新，但课题名额释放失败，请手动检查。');
+          }
+        }
+      }
+
+      // Sync student selection if this is their application
+      if (mySelection && user) {
+        const matchedAudit = audits.find(a => a.id === id);
+        if (matchedAudit && matchedAudit.studentId === user.id) {
+          const matchedTopic = topics.find(t => t.id === mySelection.topicId);
+          if (matchedTopic && matchedTopic.title === matchedAudit.topicTitle) {
+            setMySelection(prev => {
+              if (!prev) return null;
+              return {
+                ...prev,
+                status: status === '已通过' ? '初审通过' : '已退回'
+              };
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to submit audit:', err);
+      showToast('error', '审核操作失败', '请稍后重试。');
     }
   };
 

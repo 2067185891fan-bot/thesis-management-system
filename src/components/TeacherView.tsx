@@ -442,9 +442,9 @@ export default function TeacherView({
                     </span>
                   </div>
 
-                  {/* Loop Audits */}
+                  {/* Loop Audits (exclude rejected) */}
                   <div className="space-y-4">
-                    {audits.map(audit => (
+                    {audits.filter(a => a.status !== '已驳回').map(audit => (
                       <div 
                         key={audit.id}
                         className="p-3.5 bg-[#eef5f7] border border-transparent rounded-lg hover:border-primary/20 transition-all text-xs flex flex-col justify-between gap-2.5"
