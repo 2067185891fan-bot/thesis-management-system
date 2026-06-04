@@ -15,7 +15,7 @@ import {
   UserRole,
   TaskBook
 } from '../types';
-import { AVATARS, INITIAL_STUDENT_PROFILE } from '../data';
+import { AVATARS } from '../data';
 
 interface StudentViewProps {
   topics: ThesisTopic[];
@@ -116,13 +116,13 @@ export default function StudentView({
   };
 
   const selectedTopic = mySelection ? topics.find(t => t.id === mySelection.topicId) : null;
-  const myTaskBook = taskBooks?.find(tb => tb.studentName === (studentProfile?.name || '陈伟') || tb.topicTitle === selectedTopic?.title);
+  const myTaskBook = taskBooks?.find(tb => tb.studentName === studentProfile?.name || tb.topicTitle === selectedTopic?.title);
 
   // Profile editing hooks and fields
-  const [profileName, setProfileName] = useState(studentProfile?.name || '陈伟');
-  const [profileDept, setProfileDept] = useState(studentProfile?.department || '计算机科学学院');
-  const [profileEmail, setProfileEmail] = useState((studentProfile as any)?.email || 'chenwei_edu@university.cn');
-  const [profilePhone, setProfilePhone] = useState((studentProfile as any)?.phone || '13812345678');
+  const [profileName, setProfileName] = useState(studentProfile?.name || '');
+  const [profileDept, setProfileDept] = useState(studentProfile?.department || '');
+  const [profileEmail, setProfileEmail] = useState((studentProfile as any)?.email || '');
+  const [profilePhone, setProfilePhone] = useState((studentProfile as any)?.phone || '');
   const [profileAvatar, setProfileAvatar] = useState(studentProfile?.avatar || AVATARS.student);
 
   // Change password hooks and fields
@@ -137,8 +137,8 @@ export default function StudentView({
       setProfileName(studentProfile.name);
       setProfileDept(studentProfile.department);
       setProfileAvatar(studentProfile.avatar);
-      setProfileEmail((studentProfile as any).email || 'chenwei_edu@university.cn');
-      setProfilePhone((studentProfile as any).phone || '13812345678');
+      setProfileEmail((studentProfile as any).email || '');
+      setProfilePhone((studentProfile as any).phone || '');
     }
   }, [studentProfile]);
 
@@ -149,7 +149,7 @@ export default function StudentView({
       return;
     }
     const updated: UserProfile = {
-      ...(studentProfile || { id: 'STUD-2024081', department: '计算机科学学院', avatar: AVATARS.student }),
+      ...(studentProfile || { id: '', department: '', avatar: AVATARS.student }),
       name: profileName.trim(),
       department: profileDept,
       avatar: profileAvatar,
@@ -177,7 +177,7 @@ export default function StudentView({
     try {
       const stored = localStorage.getItem('thesis_app_registered_users');
       const registeredUsers = stored ? JSON.parse(stored) : [];
-      const userIndex = registeredUsers.findIndex((u: any) => u.id === (studentProfile?.id || 'STUD-2024081'));
+      const userIndex = registeredUsers.findIndex((u: any) => u.id === studentProfile?.id);
 
       if (userIndex !== -1) {
         if (registeredUsers[userIndex].password !== oldPassword) {
@@ -190,10 +190,10 @@ export default function StudentView({
       } else {
         // Fallback or setup for pre-seeded user
         const newUser = {
-          id: studentProfile?.id || 'STUD-2024081',
-          name: studentProfile?.name || '陈伟',
+          id: studentProfile?.id || '',
+          name: studentProfile?.name || '',
           email: profileEmail,
-          department: studentProfile?.department || '计算机科学学院',
+          department: studentProfile?.department || '',
           role: 'student',
           password: newPassword,
           avatar: studentProfile?.avatar || AVATARS.student
@@ -654,9 +654,9 @@ export default function StudentView({
           {/* Connected User pill */}
           <div className="flex items-center gap-3 bg-[#eef5f7] border border-[#c0c8cd]/40 px-3.5 py-1.5 rounded-full">
             <div className="w-6 h-6 rounded-full overflow-hidden bg-primary-container text-white font-bold text-xs flex items-center justify-center">
-              {(studentProfile?.name || '陈伟').substring(0, 1)}
+              {(studentProfile?.name || '?').substring(0, 1)}
             </div>
-            <span className="text-xs font-bold text-primary">{studentProfile?.name || '陈伟'}</span>
+            <span className="text-xs font-bold text-primary">{studentProfile?.name || '未登录'}</span>
           </div>
           <button 
             onClick={onLogout} 
@@ -1251,7 +1251,7 @@ export default function StudentView({
                 <div className="space-y-1">
                   <span className="text-secondary text-xs uppercase font-bold tracking-wider">当前课题名称</span>
                   <h2 className="text-lg font-bold text-primary leading-snug">
-                    {selectedTopic ? selectedTopic.title : '基于深度学习的学术文献自动摘要系统研究与实现'}
+                    {selectedTopic ? selectedTopic.title : '暂无选题'}
                   </h2>
                 </div>
                 {/* Progress bar info */}
@@ -1805,10 +1805,10 @@ export default function StudentView({
                       <img src={studentProfile?.avatar || AVATARS.student} className="w-full h-full object-cover" alt="Student Profile" />
                     </div>
                     
-                    <h3 className="mt-3 text-lg font-bold text-[#161d1f]">{studentProfile?.name || '陈伟'}</h3>
-                    <p className="text-[10px] text-[#70787d]">ID: {studentProfile?.id || 'STUD-2024081'}</p>
+                    <h3 className="mt-3 text-lg font-bold text-[#161d1f]">{studentProfile?.name || '未设置'}</h3>
+                    <p className="text-[10px] text-[#70787d]">ID: {studentProfile?.id || '-'}</p>
                     <span className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-medium text-[10px]">
-                      {studentProfile?.department || '计算机科学学院'}
+                      {studentProfile?.department || '未设置'}
                     </span>
                   </div>
 
@@ -1912,7 +1912,7 @@ export default function StudentView({
                         </label>
                         <input
                           type="text"
-                          value={studentProfile?.id || 'STUD-2024081'}
+                          value={studentProfile?.id || '-'}
                           disabled
                           className="w-full px-3 py-2 bg-slate-100 border border-slate-200 text-slate-500 rounded-lg outline-none cursor-not-allowed font-mono"
                         />

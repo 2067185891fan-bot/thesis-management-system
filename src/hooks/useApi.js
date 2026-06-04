@@ -450,15 +450,15 @@ export function useFinal(studentId, advisorName = null) {
     chineseTitle: '',
     englishTitle: '',
     plagiarismRate: '0',
-    plagiarismInstitution: '中国知网 (CNKI)',
+    plagiarismInstitution: '',
     plagiarismReport: null,
     finalThesisFile: null,
-    instructorName: '李教授',
-    instructorDept: '计算机科学学院',
+    instructorName: '',
+    instructorDept: '',
     instructorAvatar: '',
     comments: [],
     status: '等待提交',
-    deadlineCountdown: { days: 14, hours: '08', minutes: '24', seconds: '10' }
+    deadlineCountdown: null
   });
   const { loading, error, execute } = useAsyncOperation();
   const fetchedRef = useRef(false);
@@ -479,15 +479,15 @@ export function useFinal(studentId, advisorName = null) {
           chineseTitle: f.chinese_title || f.chineseTitle || '',
           englishTitle: f.english_title || f.englishTitle || '',
           plagiarismRate: f.plagiarism_rate || f.plagiarismRate || '0',
-          plagiarismInstitution: f.plagiarism_institution || f.plagiarismInstitution || '中国知网 (CNKI)',
+          plagiarismInstitution: f.plagiarism_institution || f.plagiarismInstitution || '',
           plagiarismReport: f.plagiarism_report || f.plagiarismReport || null,
           finalThesisFile: f.final_thesis_file || f.finalThesisFile || null,
-          instructorName: f.instructor_name || f.instructorName || '李教授',
-          instructorDept: f.instructor_dept || f.instructorDept || '计算机科学学院',
+          instructorName: f.instructor_name || f.instructorName || '',
+          instructorDept: f.instructor_dept || f.instructorDept || '',
           instructorAvatar: f.instructor_avatar || f.instructorAvatar || '',
           comments: f.comments || [],
           status,
-          deadlineCountdown: f.deadline_countdown || f.deadlineCountdown || { days: 14, hours: '08', minutes: '24', seconds: '10' }
+          deadlineCountdown: f.deadline_countdown || f.deadlineCountdown || null
         });
       }
     } catch (err) {

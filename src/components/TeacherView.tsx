@@ -840,7 +840,7 @@ export default function TeacherView({
                         </div>
 
                         <p className="text-[10px] text-slate-500 leading-normal">
-                          查重对接权威检测引擎：<strong>{finalSubmission.plagiarismInstitution}</strong>，检测批号：WP-2024-99810
+                          查重对接权威检测引擎：<strong>{finalSubmission.plagiarismInstitution || '未设置'}</strong>
                         </p>
                       </div>
 

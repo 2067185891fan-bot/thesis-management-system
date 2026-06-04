@@ -229,11 +229,11 @@ export default function App() {
     // Set appropriate user profile
     let defaultProfile: UserProfile;
     if (newRole === 'student') {
-      defaultProfile = { id: 'STUD-2024081', name: '陈伟', department: '计算机科学学院', avatar: '' };
+      defaultProfile = { id: '', name: '', department: '', avatar: '' };
     } else if (newRole === 'teacher') {
-      defaultProfile = { id: 'ACAD-9921-X', name: 'Dr. Julian Sterling', department: '计算机科学学院', avatar: '' };
+      defaultProfile = { id: '', name: '', department: '', avatar: '' };
     } else {
-      defaultProfile = { id: 'ADMIN-8820-T', name: '陈教授', department: '学术教务中心', avatar: '' };
+      defaultProfile = { id: '', name: '', department: '', avatar: '' };
     }
     localStorage.setItem('thesis_app_current_user', JSON.stringify(defaultProfile));
     window.location.reload();
@@ -473,12 +473,10 @@ export default function App() {
 
   if (role === 'teacher') {
     const teacherProfile: UserProfile = currentUser || {
-      id: 'ACAD-9921-X',
-      name: 'Dr. Julian Sterling',
-      department: '计算机科学学院',
-      avatar: '',
-      studentCount: 12,
-      pendingCount: 8
+      id: '',
+      name: '',
+      department: '',
+      avatar: ''
     };
 
     return (
