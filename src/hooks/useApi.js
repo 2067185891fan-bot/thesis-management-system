@@ -411,23 +411,19 @@ export function useMidterm(studentId, advisorName = null) {
 
   const updateMidterm = useCallback(async (updates) => {
     if (!studentId) return;
-    try {
-      const result = await execute(() => midtermApi.createOrUpdate({
-        studentId,
-        currentProgress: updates.currentProgress !== undefined ? updates.currentProgress : midterm.currentProgress,
-        explanation: updates.explanation || midterm.explanation,
-        attachments: updates.attachments || midterm.attachments,
-        comments: updates.comments || midterm.comments,
-        isSubmitted: updates.isSubmitted !== undefined ? updates.isSubmitted : midterm.isSubmitted,
-        lastSaved: updates.lastSaved || midterm.lastSaved
-      }));
-      if (result && result.success) {
-        await fetchMidterm();
-      }
-      return result;
-    } catch (err) {
-      console.error('Failed to update midterm:', err);
+    const result = await execute(() => midtermApi.createOrUpdate({
+      studentId,
+      currentProgress: updates.currentProgress !== undefined ? updates.currentProgress : midterm.currentProgress,
+      explanation: updates.explanation || midterm.explanation,
+      attachments: updates.attachments || midterm.attachments,
+      comments: updates.comments || midterm.comments,
+      isSubmitted: updates.isSubmitted !== undefined ? updates.isSubmitted : midterm.isSubmitted,
+      lastSaved: updates.lastSaved || midterm.lastSaved
+    }));
+    if (result && result.success) {
+      await fetchMidterm();
     }
+    return result;
   }, [studentId, midterm, execute, fetchMidterm]);
 
   const addComment = useCallback(async (advisorName, role, comment) => {
@@ -506,18 +502,14 @@ export function useFinal(studentId, advisorName = null) {
 
   const updateFinal = useCallback(async (updates) => {
     if (!studentId) return;
-    try {
-      const result = await execute(() => finalApi.createOrUpdate({
-        studentId,
-        ...updates
-      }));
-      if (result && result.success) {
-        await fetchFinal();
-      }
-      return result;
-    } catch (err) {
-      console.error('Failed to update final:', err);
+    const result = await execute(() => finalApi.createOrUpdate({
+      studentId,
+      ...updates
+    }));
+    if (result && result.success) {
+      await fetchFinal();
     }
+    return result;
   }, [studentId, execute, fetchFinal]);
 
   useEffect(() => {
