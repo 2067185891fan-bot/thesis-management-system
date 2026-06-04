@@ -1370,7 +1370,7 @@ export default function StudentView({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* 中期考核书上传 */}
                     <div
-                      onClick={() => triggerFileUpload('midterm-report', setMidtermReportFile)}
+                      onClick={() => !midterm.isSubmitted && triggerFileUpload('midterm-report', setMidtermReportFile)}
                       className="border-2 border-dashed border-[#c0c8cd] hover:border-primary hover:bg-[#eef5f7] transition-all p-5 rounded-lg flex flex-col items-center justify-center cursor-pointer text-center group/btn overflow-hidden min-h-[110px]"
                     >
                       {uploadField === 'midterm-report' ? (
@@ -1411,7 +1411,7 @@ export default function StudentView({
 
                     {/* 成果算法数据包上传 */}
                     <div
-                      onClick={() => triggerFileUpload('midterm-code', setMidtermCodeFile)}
+                      onClick={() => !midterm.isSubmitted && triggerFileUpload('midterm-code', setMidtermCodeFile)}
                       className="border-2 border-dashed border-[#c0c8cd] hover:border-primary hover:bg-[#eef5f7] transition-all p-5 rounded-lg flex flex-col items-center justify-center cursor-pointer text-center group/btn overflow-hidden min-h-[110px]"
                     >
                       {uploadField === 'midterm-code' ? (

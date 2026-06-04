@@ -182,39 +182,19 @@ export default function TeacherView({
       bulletType: status === '已通过' ? 'active' : 'expired'
     };
 
-    // Call API to update midterm
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/midterm`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studentId: selectedStudentId,
-          currentProgress: interactiveProgress,
-          isSubmitted: status === '已通过',
-          comments: [newComment, ...(midterm.comments || [])]
-        })
-      });
-      const result = await response.json();
-      if (result.success) {
-        onUpdateMidterm(prev => ({
-          ...prev,
-          currentProgress: interactiveProgress,
-          isSubmitted: status === '已通过',
-          comments: [newComment, ...prev.comments]
-        }));
-        setMidtermOpinion('');
-        showToast(
-          status === '已通过' ? 'success' : 'warning',
-          `中期成果审核判定: ${status === '已通过' ? '合格通过' : '限期整改'}`,
-          `进度锚点 (${interactiveProgress}%) 及对应指导建议已同步至学生看板。`
-        );
-      } else {
-        showToast('error', '中期评审失败', '服务器返回错误，请稍后重试。');
-      }
-    } catch (err) {
-      console.error('Failed to update midterm:', err);
-      showToast('error', '中期评审失败', '网络请求失败，请检查连接后重试。');
-    }
+    const updated = {
+      ...midterm,
+      currentProgress: interactiveProgress,
+      isSubmitted: status === '已通过',
+      comments: [newComment, ...(midterm.comments || [])]
+    };
+    await onUpdateMidterm(updated);
+    setMidtermOpinion('');
+    showToast(
+      status === '已通过' ? 'success' : 'warning',
+      `中期成果审核判定: ${status === '已通过' ? '合格通过' : '限期整改'}`,
+      `进度锚点 (${interactiveProgress}%) 及对应指导建议已同步至学生看板。`
+    );
   };
 
   const handleFinalVerdict = async (status: '已通过' | '已驳回') => {
