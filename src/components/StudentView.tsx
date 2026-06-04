@@ -310,8 +310,19 @@ export default function StudentView({
     setTimeout(() => {
       const fileInput = document.getElementById('hidden-file-input') as HTMLInputElement;
       if (fileInput) {
+        fileInput.value = '';
         fileInput.click();
       }
+      // If user cancels the file dialog, onChange won't fire.
+      // Reset upload state after a short delay if no file was selected.
+      setTimeout(() => {
+        setUploadState(prev => {
+          if (prev && prev.progress === 0) {
+            return null;
+          }
+          return prev;
+        });
+      }, 500);
     }, 100);
   };
 
