@@ -330,7 +330,7 @@ export default function StudentView({
     showToast('info', '上传已取消', '文件上传已取消。');
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !uploadState) return;
 
@@ -341,28 +341,49 @@ export default function StudentView({
       return;
     }
 
-    showToast('info', '开始上传', `正在上传文件: ${file.name}`);
+    const currentField = uploadState.field;
+    const studentId = studentProfile?.id || 'unknown';
 
-    // Simulate upload progress
+    // Start real upload with progress simulation
+    showToast('info', '开始上传', `正在上传文件: ${file.name}`);
     let current = 0;
     const interval = setInterval(() => {
-      current += Math.floor(Math.random() * 15) + 10;
-      if (current >= 100) {
-        current = 100;
-        clearInterval(interval);
+      current += Math.floor(Math.random() * 10) + 5;
+      setUploadState(prev => prev ? { ...prev, progress: Math.min(current, 90) } : null);
+    }, 200);
+
+    try {
+      // Dynamic import to avoid bundling issues if Supabase not configured
+      const { uploadFile } = await import('../lib/upload');
+      const folder = currentField.startsWith('proposal') ? 'proposals'
+        : currentField.startsWith('midterm') ? 'midterm'
+        : 'final';
+      const result = await uploadFile(file, folder, studentId);
+
+      clearInterval(interval);
+      setUploadState(prev => prev ? { ...prev, progress: 100 } : null);
+
+      if (result) {
+        const fileInfo = JSON.stringify({
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: result.url
+        });
         setTimeout(() => {
-          const fileInfo = JSON.stringify({
-            name: file.name,
-            size: file.size,
-            type: file.type
-          });
           uploadState.onComplete?.(fileInfo);
           setUploadState(null);
           showToast('success', '上传成功', `文件 "${file.name}" 已安全存储。`);
         }, 300);
+      } else {
+        setUploadState(null);
+        showToast('error', '上传失败', `文件 "${file.name}" 上传失败，请重试。`);
       }
-      setUploadState(prev => prev ? { ...prev, progress: Math.min(current, 100) } : null);
-    }, 100);
+    } catch (err) {
+      clearInterval(interval);
+      setUploadState(null);
+      showToast('error', '上传失败', `文件上传出错: ${err.message || '未知错误'}`);
+    }
 
     // Reset file input
     e.target.value = '';
@@ -488,6 +509,19 @@ export default function StudentView({
       showToast('error', '无法提交开题', '您的选题尚未通过导师审核，请等待选题通过后再提交开题报告。');
       return;
     }
+    // Block if already submitted and pending review or approved
+    if (proposal.isSubmitted) {
+      const lastStatus = proposal.history[0]?.status;
+      if (lastStatus === '审核中') {
+        showToast('warning', '已提交审核中', '您的开题报告正在审核中，请等待导师批阅。');
+        return;
+      }
+      if (lastStatus === '已通过') {
+        showToast('info', '已通过无需重复提交', '您的开题报告已通过审核，无需再次提交。');
+        return;
+      }
+      // lastStatus === '已驳回' → allow resubmission
+    }
     if (!proposalFile) {
       showToast('error', '未发现开题大纲', '请先通过上传器传输开题大纲 Word/PDF 报告成果。');
       return;
@@ -502,7 +536,7 @@ export default function StudentView({
     const updated = {
       ...proposal,
       abstractText: proposalAbstract,
-      proposalFile: { id: 'pfa_new', name: fileInfo.name, size: formatFileSize(fileInfo.size), type: fileInfo.type || 'docx' },
+      proposalFile: { id: 'pfa_new', name: fileInfo.name, size: formatFileSize(fileInfo.size), type: fileInfo.type || 'docx', url: fileInfo.url || null },
       isSubmitted: true,
       history: [
         { id: `ph_${Date.now()}`, fileName: fileInfo.name, date: '刚刚 提交', status: '审核中' as const },
@@ -520,6 +554,11 @@ export default function StudentView({
   };
 
   const handleMidtermSubmit = async () => {
+    // Block if already submitted (teacher needs to review first)
+    if (midterm.isSubmitted) {
+      showToast('warning', '已提交审核中', '您的中期报告已提交，请等待导师审核。');
+      return;
+    }
     if (!midtermReportFile && !midtermCodeFile) {
       showToast('error', '未检测到进度文档', '请先上传中期研究报告附件。');
       return;
@@ -534,7 +573,7 @@ export default function StudentView({
       } catch {
         fileInfo = { name: midtermReportFile, size: 0, type: 'pdf' };
       }
-      attachments.push({ id: 'mfa_report', name: fileInfo.name, size: formatFileSize(fileInfo.size), type: fileInfo.type || 'pdf' });
+      attachments.push({ id: 'mfa_report', name: fileInfo.name, size: formatFileSize(fileInfo.size), type: fileInfo.type || 'pdf', url: fileInfo.url || null });
     }
     if (midtermCodeFile) {
       let fileInfo;
@@ -543,7 +582,7 @@ export default function StudentView({
       } catch {
         fileInfo = { name: midtermCodeFile, size: 0, type: 'zip' };
       }
-      attachments.push({ id: 'mfa_code', name: fileInfo.name, size: formatFileSize(fileInfo.size), type: fileInfo.type || 'zip' });
+      attachments.push({ id: 'mfa_code', name: fileInfo.name, size: formatFileSize(fileInfo.size), type: fileInfo.type || 'zip', url: fileInfo.url || null });
     }
 
     const updated = {
@@ -575,9 +614,13 @@ export default function StudentView({
       showToast('error', '未找到终稿定稿', '您必须选定并上载完成格式标定的论文终定稿 PDF 文本。');
       return;
     }
-    // Prevent duplicate submission while under review
+    // Prevent duplicate submission while under review or already approved
     if (finalSubmission.status === '审核中') {
       showToast('warning', '已提交审核', '您的终稿正在审核中，请勿重复提交。');
+      return;
+    }
+    if (finalSubmission.status === '已通过') {
+      showToast('info', '已通过无需重复提交', '您的终稿已通过审核，无需再次提交。');
       return;
     }
     // Parse file info from JSON string
@@ -604,8 +647,8 @@ export default function StudentView({
       englishTitle: enTitle,
       plagiarismRate: plagRate,
       plagiarismInstitution: plagInst,
-      plagiarismReport: plagFileInfo ? { id: 'rp_new', name: plagFileInfo.name, size: formatFileSize(plagFileInfo.size), type: plagFileInfo.type || 'pdf' } : finalSubmission.plagiarismReport,
-      finalThesisFile: { id: 'tf_new', name: thesisFileInfo.name, size: formatFileSize(thesisFileInfo.size), type: thesisFileInfo.type || 'pdf' },
+      plagiarismReport: plagFileInfo ? { id: 'rp_new', name: plagFileInfo.name, size: formatFileSize(plagFileInfo.size), type: plagFileInfo.type || 'pdf', url: plagFileInfo.url || null } : finalSubmission.plagiarismReport,
+      finalThesisFile: { id: 'tf_new', name: thesisFileInfo.name, size: formatFileSize(thesisFileInfo.size), type: thesisFileInfo.type || 'pdf', url: thesisFileInfo.url || null },
       status: '审核中' as const
     };
     await onUpdateFinal(updated);

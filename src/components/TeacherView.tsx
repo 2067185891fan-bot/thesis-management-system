@@ -677,12 +677,18 @@ export default function TeacherView({
                             <span className="material-symbols-outlined text-xs text-secondary-fixed">description</span>
                             论文大纲副本：{proposal.proposalFile.name} ({proposal.proposalFile.size})
                           </span>
-                          <button
-                            onClick={() => showToast('info', '下载提示', `已启动论文大纲文件《${proposal.proposalFile?.name}》的安全沙盒校验并进行脱机审理。`)}
-                            className="text-primary hover:underline font-bold text-[10px] cursor-pointer"
-                          >
-                            脱机审阅大纲
-                          </button>
+                          {proposal.proposalFile.url ? (
+                            <a
+                              href={proposal.proposalFile.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline font-bold text-[10px] cursor-pointer"
+                            >
+                              下载审阅
+                            </a>
+                          ) : (
+                            <span className="text-slate-400 text-[10px]">文件未上传</span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -761,12 +767,16 @@ export default function TeacherView({
                           </p>
                         </div>
 
-                        {midterm.attachments.length > 0 && (
-                          <div className="flex items-center gap-2 text-[10px] bg-white px-2 py-1 rounded border border-slate-200 self-start">
+                        {midterm.attachments.length > 0 && midterm.attachments.map((att: any) => (
+                          <div key={att.id} className="flex items-center gap-2 text-[10px] bg-white px-2 py-1 rounded border border-slate-200 self-start">
                             <span className="material-symbols-outlined text-xs text-secondary uppercase font-bold">article</span>
-                            <span>{midterm.attachments[0].name} ({midterm.attachments[0].size})</span>
+                            {att.url ? (
+                              <a href={att.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-bold">{att.name} ({att.size})</a>
+                            ) : (
+                              <span>{att.name} ({att.size})</span>
+                            )}
                           </div>
-                        )}
+                        ))}
                       </div>
                     </div>
 
@@ -854,14 +864,22 @@ export default function TeacherView({
                         {finalSubmission.plagiarismReport && (
                           <div className="flex items-center gap-2 text-[10px] bg-slate-50 px-2 py-1.5 rounded border border-slate-200 mt-2">
                             <span className="material-symbols-outlined text-xs text-secondary">gpp_good</span>
-                            <span className="font-bold">查重报告：{finalSubmission.plagiarismReport.name} ({finalSubmission.plagiarismReport.size})</span>
+                            {finalSubmission.plagiarismReport.url ? (
+                              <a href={finalSubmission.plagiarismReport.url} target="_blank" rel="noopener noreferrer" className="font-bold text-primary hover:underline">查重报告：{finalSubmission.plagiarismReport.name} ({finalSubmission.plagiarismReport.size})</a>
+                            ) : (
+                              <span className="font-bold">查重报告：{finalSubmission.plagiarismReport.name} ({finalSubmission.plagiarismReport.size})</span>
+                            )}
                           </div>
                         )}
 
                         {finalSubmission.finalThesisFile && (
                           <div className="flex items-center gap-2 text-[10px] bg-slate-50 px-2 py-1.5 rounded border border-slate-200 mt-2">
                             <span className="material-symbols-outlined text-xs text-secondary">description</span>
-                            <span className="font-bold">论文定稿：{finalSubmission.finalThesisFile.name} ({finalSubmission.finalThesisFile.size})</span>
+                            {finalSubmission.finalThesisFile.url ? (
+                              <a href={finalSubmission.finalThesisFile.url} target="_blank" rel="noopener noreferrer" className="font-bold text-primary hover:underline">论文定稿：{finalSubmission.finalThesisFile.name} ({finalSubmission.finalThesisFile.size})</a>
+                            ) : (
+                              <span className="font-bold">论文定稿：{finalSubmission.finalThesisFile.name} ({finalSubmission.finalThesisFile.size})</span>
+                            )}
                           </div>
                         )}
 
