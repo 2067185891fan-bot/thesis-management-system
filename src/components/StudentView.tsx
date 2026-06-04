@@ -334,21 +334,31 @@ export default function StudentView({
     const file = e.target.files?.[0];
     if (!file || !uploadState) return;
 
-    if (file.size > 50 * 1024 * 1024) {
-      showToast('error', '文件过大', '文件大小不能超过 50MB');
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('error', '文件过大', '文件大小不能超过 10MB');
       setUploadState(null);
       return;
     }
 
-    // Store file metadata only — no upload needed
-    const fileInfo = JSON.stringify({
-      name: file.name,
-      size: file.size,
-      type: file.type
-    });
-    uploadState.onComplete?.(fileInfo);
-    setUploadState(null);
-    showToast('success', '文件已选择', `"${file.name}" 等待提交。`);
+    // Read file as base64 data URL for storage
+    showToast('info', '正在读取', `正在处理: ${file.name}`);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const fileInfo = JSON.stringify({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        url: reader.result // base64 data URL
+      });
+      uploadState.onComplete?.(fileInfo);
+      setUploadState(null);
+      showToast('success', '文件已就绪', `"${file.name}" 已读取，点击提交保存。`);
+    };
+    reader.onerror = () => {
+      setUploadState(null);
+      showToast('error', '读取失败', '文件读取出错，请重试。');
+    };
+    reader.readAsDataURL(file);
 
     e.target.value = '';
   };
