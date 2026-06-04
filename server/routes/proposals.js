@@ -111,8 +111,7 @@ router.post('/', async (req, res) => {
           abstract_text: abstractText,
           proposal_file: proposalFile,
           is_submitted: isSubmitted,
-          history,
-          comments: comments || []
+          history
         })
         .select()
         .single();

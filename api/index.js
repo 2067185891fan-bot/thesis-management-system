@@ -320,6 +320,24 @@ app.put('/api/audits/:id', async (req, res) => {
   }
 });
 
+app.delete('/api/audits/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { error } = await supabase
+      .from('selection_audits')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return res.json({ success: true, message: '删除成功' });
+  } catch (error) {
+    console.error('Delete audit error:', error);
+    res.status(500).json({ success: false, message: '删除审核失败' });
+  }
+});
+
 // Taskbooks routes
 app.get('/api/taskbooks', async (req, res) => {
   try {
@@ -447,8 +465,7 @@ app.post('/api/proposals', async (req, res) => {
           abstract_text: abstractText,
           proposal_file: proposalFile,
           is_submitted: isSubmitted,
-          history,
-          comments
+          history
         })
         .eq('student_id', studentId)
         .select()
@@ -465,8 +482,7 @@ app.post('/api/proposals', async (req, res) => {
           abstract_text: abstractText,
           proposal_file: proposalFile,
           is_submitted: isSubmitted,
-          history,
-          comments
+          history
         })
         .select()
         .single();
