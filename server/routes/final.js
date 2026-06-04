@@ -119,7 +119,6 @@ router.post('/', async (req, res) => {
         status,
         deadline_countdown: deadlineCountdown
       };
-      if (comments !== undefined) updateData.comments = comments;
 
       const { data: updatedFinal, error } = await supabase
         .from('final_submissions')
@@ -149,8 +148,7 @@ router.post('/', async (req, res) => {
           instructor_dept: instructorDept,
           instructor_avatar: instructorAvatar,
           status,
-          deadline_countdown: deadlineCountdown,
-          comments: comments || []
+          deadline_countdown: deadlineCountdown
         })
         .select()
         .single();
