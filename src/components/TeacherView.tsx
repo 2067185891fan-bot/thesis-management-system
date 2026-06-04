@@ -867,7 +867,7 @@ export default function TeacherView({
                     </div>
 
                     {/* Evaluator judgement input */}
-                    {finalSubmission.comments && finalSubmission.comments.length > 0 ? (
+                    {finalSubmission.status === '已通过' || finalSubmission.status === '已驳回' ? (
                       <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
                         <span className="material-symbols-outlined text-emerald-600 text-2xl">check_circle</span>
                         <p className="text-emerald-700 font-bold text-sm mt-1">终稿已审核：{finalSubmission.status}</p>
