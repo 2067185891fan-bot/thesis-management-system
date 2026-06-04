@@ -791,7 +791,7 @@ export default function TeacherView({
                     {/* Interactive state updating */}
                     <div className="bg-white p-4 rounded-xl border border-slate-100 space-y-4">
 
-                    {midterm.isSubmitted && midterm.currentProgress > 0 ? (
+                    {midterm.comments && midterm.comments.length > 0 ? (
                       <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
                         <span className="material-symbols-outlined text-emerald-600 text-2xl">check_circle</span>
                         <p className="text-emerald-700 font-bold text-sm mt-1">中期报告已审核通过</p>
