@@ -137,16 +137,17 @@ export default function App() {
                 newStatus = '选题待审核';
             }
 
-            // Create or update mySelection
-            if (!mySelection || mySelection.topicId !== topicId || mySelection.status !== newStatus) {
-              setMySelection({
-                topicId: topicId,
+            // Use functional form to avoid stale closure
+            setMySelection(prev => {
+              if (prev && prev.topicId === topicId && prev.status === newStatus) return prev;
+              return {
+                topicId,
                 status: newStatus,
                 submitDate: activeAudit.created_at ? new Date(activeAudit.created_at).toLocaleDateString('zh-CN') : new Date().toLocaleDateString('zh-CN'),
                 projectCode: `PROJ-CS-${activeAudit.student_id}`,
                 timelineSteps: []
-              });
-            }
+              };
+            });
           } else {
             // Check for rejected audit
             const rejectedAudit = data.audits.find(
@@ -155,15 +156,16 @@ export default function App() {
             if (rejectedAudit) {
               const topic = topics.find(t => t.title === rejectedAudit.topic_title);
               const topicId = topic?.id || '';
-              if (!mySelection || mySelection.topicId !== topicId || mySelection.status !== '已退回') {
-                setMySelection({
-                  topicId: topicId,
+              setMySelection(prev => {
+                if (prev && prev.topicId === topicId && prev.status === '已退回') return prev;
+                return {
+                  topicId,
                   status: '已退回',
                   submitDate: rejectedAudit.created_at ? new Date(rejectedAudit.created_at).toLocaleDateString('zh-CN') : new Date().toLocaleDateString('zh-CN'),
                   projectCode: `PROJ-CS-${rejectedAudit.student_id}`,
                   timelineSteps: []
-                });
-              }
+                };
+              });
             }
           }
         }
