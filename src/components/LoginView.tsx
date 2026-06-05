@@ -248,7 +248,7 @@ export default function LoginView({ onLogin, showToast }: LoginViewProps) {
           
           <div className="relative z-10 flex items-center gap-3">
             <span className="material-symbols-outlined text-4xl text-secondary-fixed">school</span>
-            <span className="font-bold text-xl tracking-tight">论文管理系统 <span className="text-xs uppercase text-[#acefe3] font-mono">v4.0</span></span>
+            <span className="font-bold text-xl tracking-tight">毕设管理系统 <span className="text-xs uppercase text-[#acefe3] font-mono">v4.0</span></span>
           </div>
 
           <div className="relative z-10 my-auto py-8">
@@ -279,7 +279,7 @@ export default function LoginView({ onLogin, showToast }: LoginViewProps) {
           {/* Logo on Mobile */}
           <div className="md:hidden flex items-center gap-2 mb-6 justify-center">
             <span className="material-symbols-outlined text-3xl text-primary">school</span>
-            <h1 className="font-bold text-xl text-primary tracking-tight">论文管理系统</h1>
+            <h1 className="font-bold text-xl text-primary tracking-tight">毕设管理系统</h1>
           </div>
 
           {isRegistering ? (

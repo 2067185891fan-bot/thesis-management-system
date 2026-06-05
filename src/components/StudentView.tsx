@@ -639,7 +639,7 @@ export default function StudentView({
         <div className="flex items-center gap-3">
           <span className="material-symbols-outlined text-primary text-3xl">school</span>
           <h1 className="font-bold text-lg text-primary tracking-tight md:text-xl flex items-center gap-1.5">
-            论文管理系统
+            毕设管理系统
             <span className="text-[10px] bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-full font-bold uppercase">
               STUDENT
             </span>
